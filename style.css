@@ -1,14 +1,23 @@
 html, body {
-  margin: 0;
-  padding: 0;
 
-  overflow: hidden;
+margin:0;
+padding:0;
 
-  background: rgb(242,242,242);
+overflow:hidden;
 
-  font-family: Arial, Helvetica, sans-serif;
+background:#F7F6F2;
+
+font-family:
+Inter,
+Helvetica Neue,
+Arial,
+sans-serif;
+
 }
 
-canvas {
-  display: block;
+
+canvas{
+
+display:block;
+
 }
