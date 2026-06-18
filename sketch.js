@@ -23,10 +23,10 @@ let rewardScreen = false;
 
 // generation
 
-let maxPopups = 20;
-let dangerZone = 3;
+let maxPopups = 14;        // 最大窗口数量
+let dangerZone = 3;        // 快完成检测
 
-let spawnDelay = 2500;
+let spawnDelay = 6000;     // 初始生成速度
 let lastSpawn = 0;
 
 let paused = false;
@@ -226,14 +226,14 @@ text:"More tasks are available for you"
 
 function setup(){
 
-
 createCanvas(
 windowWidth,
 windowHeight
 );
 
 
-for(let i=0;i<5;i++){
+// 初始少量任务
+for(let i=0;i<3;i++){
 
 createPopup();
 
@@ -315,30 +315,89 @@ drawRewardScreen();
 function systemControl(){
 
 
-
+// 达到上限停止增长
 if(popups.length >= maxPopups){
 
-paused=true;
+paused = true;
 
 }
 
 
 
+// 用户快完成
 if(popups.length <= dangerZone){
 
 
-paused=false;
+paused = false;
 
 
 
-if(frameCount%150===0){
+// 给用户一点时间看到希望
+
+if(frameCount % 300 === 0){
 
 
 createPopup();
+
+
+stress += 3;
+
+
+}
+
+
+}
+
+
+
+
+// motivation 越高，任务越快
+// 但是保持舒服节奏
+
+spawnDelay = map(
+
+motivation,
+
+0,
+
+100,
+
+9000,
+
+3500
+
+);
+
+
+
+spawnDelay = constrain(
+
+spawnDelay,
+
+3500,
+
+9000
+
+);
+
+
+
+
+// 自动生成
+
+if(
+
+!paused &&
+
+millis()-lastSpawn > spawnDelay
+
+){
+
+
 createPopup();
 
 
-stress+=5;
+lastSpawn = millis();
 
 
 }
@@ -923,15 +982,14 @@ paused=false;
 
 
 
-motivation+=15;
+motivation += 8;
 
 
-stress+=5;
+stress += 3;
 
 
 
-createPopup();
-createPopup();
+// 奖励后只给一个新机会
 createPopup();
 
 
@@ -1297,9 +1355,9 @@ paused=true;
 
 if(
 
-motivation>85 &&
+motivation>90 &&
 
-random()<0.3
+random()<0.15
 
 ){
 
@@ -1312,10 +1370,10 @@ createPopup();
 
 
 
-stress+=6;
+stress+=4;
 
 
-balance-=10;
+balance-=5;
 
 
 
