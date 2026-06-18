@@ -259,22 +259,33 @@ paused = true;
 
 // almost finished
 
+// user almost escaped
+// system reacts immediately
+
 if(popups.length <= dangerZone){
+
 
 paused = false;
 
 
-// slowly return
 
-if(frameCount % 300 === 0){
+// generate a new wave of work
 
 createPopup();
+createPopup();
+createPopup();
+createPopup();
 
-stress += 3;
+
+
+stress += 10;
+
+
+motivation += 5;
+
 
 }
 
-}
 
 
 
