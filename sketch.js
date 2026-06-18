@@ -1,80 +1,214 @@
-let popups=[];
+let popups = [];
 
 
-// SYSTEM STATE
-
-let stress=0;
-
-let balance=85;
-
-let onlineTime=0;
+// =====================
+// SYSTEM DATA
+// =====================
 
 
+let stress = 20;
+let motivation = 60;
+let balance = 80;
 
-// generation control
+let completedTasks = 0;
 
-let maxPopups=22;
+let money = 0;
+let rewardAmount = 0;
 
-let dangerZone=4;
-
-
-let spawnDelay=2200;
-
-let lastSpawn=0;
-
-
-let paused=false;
+let onlineTime = 0;
 
 
+let rewardScreen = false;
 
-let messages=[
+
+// generation
+
+let maxPopups = 20;
+let dangerZone = 3;
+
+let spawnDelay = 2500;
+let lastSpawn = 0;
+
+let paused = false;
+
+
+
+// =====================
+// MESSAGES
+// =====================
+
+
+let messages = [
+
+
+// =================
+// WORK
+// =================
 
 {
 type:"WORK",
-title:"Meeting Reminder",
-text:"Team sync starts in 10 minutes"
+color:"#5B8DEF",
+title:"Deadline Reminder",
+text:"The project deadline is approaching"
 },
-
 
 {
 type:"WORK",
-title:"New Task",
-text:"3 tasks have been assigned"
+color:"#5B8DEF",
+title:"New Assignment",
+text:"A new task has been added to your workflow"
 },
+
+{
+type:"WORK",
+color:"#5B8DEF",
+title:"Meeting Update",
+text:"Your next meeting starts in 15 minutes"
+},
+
+{
+type:"WORK",
+color:"#5B8DEF",
+title:"Client Message",
+text:"A client is waiting for your response"
+},
+
+{
+type:"WORK",
+color:"#5B8DEF",
+title:"Task Completed",
+text:"Great progress. Ready for the next goal?"
+},
+
+
+
+// =================
+// AI
+// =================
 
 
 {
 type:"AI",
+color:"#9B7EDE",
 title:"AI Assistant",
-text:"Your schedule has been optimized"
+text:"We optimized your schedule automatically"
 },
-
 
 {
 type:"AI",
-title:"Performance Update",
-text:"Focus efficiency increased +12%"
+color:"#9B7EDE",
+title:"Productivity Analysis",
+text:"Your efficiency increased by 23% today"
 },
+
+{
+type:"AI",
+color:"#9B7EDE",
+title:"Smart Suggestion",
+text:"Reducing breaks may improve performance"
+},
+
+{
+type:"AI",
+color:"#9B7EDE",
+title:"AI Summary",
+text:"Your unfinished tasks have been reorganized"
+},
+
+
+
+
+// =================
+// MONEY
+// =================
+
+
+{
+type:"MONEY",
+color:"#63C786",
+title:"Bonus Received",
+text:"Your extra effort has generated a reward"
+},
+
+{
+type:"MONEY",
+color:"#63C786",
+title:"Income Update",
+text:"Your productivity created more value today"
+},
+
+{
+type:"MONEY",
+color:"#63C786",
+title:"Performance Bonus",
+text:"Keep this rhythm to unlock more rewards"
+},
+
+
+
+
+
+// =================
+// LIFE
+// =================
 
 
 {
 type:"LIFE",
-title:"Personal",
-text:"Family message waiting"
+color:"#FF8FAB",
+title:"Family Message",
+text:"Someone at home wants to talk with you ❤️"
 },
-
 
 {
 type:"LIFE",
-title:"Health",
-text:"Your rest time was interrupted"
+color:"#FF8FAB",
+title:"Memory Reminder",
+text:"You haven't checked your personal photos today"
 },
+
+{
+type:"LIFE",
+color:"#FF8FAB",
+title:"Friend Invitation",
+text:"Your friends invited you tonight"
+},
+
+{
+type:"LIFE",
+color:"#FF8FAB",
+title:"Health Reminder",
+text:"Take a short break and breathe"
+},
+
+
+
+
+
+// =================
+// SYSTEM
+// =================
 
 
 {
 type:"SYSTEM",
+color:"#888888",
 title:"System Notice",
-text:"Unused time detected"
+text:"Your online presence has been extended"
+},
+
+{
+type:"SYSTEM",
+color:"#888888",
+title:"Daily Report",
+text:"You completed more activities than yesterday"
+},
+
+{
+type:"SYSTEM",
+color:"#888888",
+title:"New Opportunity",
+text:"More tasks are available for you"
 }
 
 
@@ -83,9 +217,15 @@ text:"Unused time detected"
 
 
 
-// -----------------
+
+
+// =====================
+// SETUP
+// =====================
+
 
 function setup(){
+
 
 createCanvas(
 windowWidth,
@@ -99,9 +239,17 @@ createPopup();
 
 }
 
+
 }
 
 
+
+
+
+
+// =====================
+// DRAW
+// =====================
 
 
 
@@ -111,12 +259,16 @@ function draw(){
 background("#F7F6F2");
 
 
+onlineTime += 0.01;
 
-onlineTime+=0.01;
 
 
+if(!rewardScreen){
 
 systemControl();
+
+}
+
 
 
 
@@ -124,14 +276,8 @@ drawDashboard();
 
 
 
-push();
 
-translate(
-random(-stress*0.15,stress*0.15),
-random(-stress*0.15,stress*0.15)
-);
-
-
+// draw popup windows
 
 for(let p of popups){
 
@@ -139,7 +285,14 @@ p.display();
 
 }
 
-pop();
+
+
+
+if(rewardScreen){
+
+drawRewardScreen();
+
+}
 
 
 }
@@ -149,86 +302,118 @@ pop();
 
 
 
-// SYSTEM LOGIC
+
+
+
+
+// =====================
+// SYSTEM CONTROL
+// =====================
+
+
 
 function systemControl(){
 
 
-// too much information
 
-if(popups.length>=maxPopups){
+if(popups.length >= maxPopups){
 
 paused=true;
 
 }
 
 
-// user almost escaped
 
-if(popups.length<=dangerZone){
+if(popups.length <= dangerZone){
 
 
 paused=false;
 
 
-if(frameCount%120===0){
+
+if(frameCount%150===0){
+
+
+createPopup();
+createPopup();
+
 
 stress+=5;
 
-createPopup();
-createPopup();
-createPopup();
-
-}
 
 }
 
 
 
-// speed changes
+}
 
-spawnDelay=map(
-stress,
+
+
+
+spawnDelay = map(
+
+motivation,
+
 0,
-60,
-3000,
-900
+
+100,
+
+4000,
+
+1200
+
 );
 
 
-spawnDelay=constrain(
+
+spawnDelay = constrain(
+
 spawnDelay,
-900,
-3000
+
+1200,
+
+4000
+
 );
 
 
 
-
-// generate
 
 if(
+
 !paused &&
+
 millis()-lastSpawn>spawnDelay
+
 ){
 
+
 createPopup();
+
 
 lastSpawn=millis();
 
-}
-
-
 
 }
 
 
 
+}
 
 
 
 
-// DASHBOARD UI
+
+
+
+
+
+
+// =====================
+// DASHBOARD
+// =====================
+
+
 
 function drawDashboard(){
 
@@ -237,16 +422,24 @@ function drawDashboard(){
 noStroke();
 
 
-
 fill(255);
 
+
+
 rect(
+
 20,
+
 20,
-230,
+
+240,
+
 height-40,
-20
+
+22
+
 );
+
 
 
 
@@ -256,143 +449,172 @@ textSize(22);
 
 textAlign(LEFT);
 
+
+
 text(
+
 "Never Offline",
+
 45,
+
 65
+
 );
 
 
+
+
+
+fill(130);
 
 textSize(12);
 
-fill(120);
 
 text(
+
 "PRODUCTIVITY SYSTEM",
+
 45,
-88
+
+90
+
 );
 
 
 
-
-
-// online
-
-fill(30);
-
-textSize(14);
-
-text(
-"ONLINE ●",
-45,
-140
-);
-
-
-fill(120);
-
-text(
-floor(onlineTime)+" minutes connected",
-45,
-165
-);
-
-
-
-
-
-// stats
 
 
 drawStat(
-"Productivity",
-"94%",
-220
-);
 
+"Completed Tasks",
 
-drawStat(
-"Messages",
-popups.length,
-280
+completedTasks,
+
+160
+
 );
 
 
 
 drawStat(
-"System Load",
+
+"Earned",
+
+"€"+money,
+
+240
+
+);
+
+
+
+
+drawStat(
+
+"Motivation",
+
+motivation+"%",
+
+320
+
+);
+
+
+
+
+drawStat(
+
+"Stress",
+
 stress,
-340
+
+400
+
 );
 
 
 
 
 
-// balance
 
-
-fill(40);
+fill(50);
 
 textSize(14);
 
+
 text(
+
 "Work-Life Balance",
+
 45,
-430
+
+500
+
 );
+
 
 
 
 fill(230);
 
+
 rect(
+
 45,
-450,
+
+520,
+
 150,
+
 10,
+
 10
+
 );
+
+
 
 
 fill(80);
 
+
 rect(
+
 45,
-450,
+
+520,
+
 map(balance,0,100,0,150),
+
 10,
+
 10
+
 );
+
+
 
 
 
 fill(120);
 
+
 text(
-floor(balance)+"%",
+
+balance+"%",
+
 45,
-485
+
+555
+
 );
 
 
-
-
-
-fill(140);
-
-textSize(11);
-
-text(
-"AI Assistant Active",
-45,
-height-70
-);
 
 
 }
+
+
 
 
 
@@ -406,24 +628,37 @@ fill(130);
 
 textSize(12);
 
+
 text(
+
 name,
+
 45,
+
 y
+
 );
+
 
 
 fill(30);
 
-textSize(24);
+textSize(25);
+
+
 
 text(
+
 value,
+
 45,
-y+30
+
+y+35
+
 );
 
 
+
 }
 
 
@@ -433,20 +668,184 @@ y+30
 
 
 
-// interaction
 
 
-function mousePressed(){
+
+// =====================
+// REWARD SCREEN
+// =====================
 
 
-for(let p of popups){
+function drawRewardScreen(){
 
-p.closeCheck(
-mouseX,
-mouseY
+
+
+fill(0,130);
+
+
+rect(
+
+0,
+
+0,
+
+width,
+
+height
+
 );
 
-}
+
+
+
+
+fill(255);
+
+
+rect(
+
+width/2-220,
+
+height/2-170,
+
+440,
+
+340,
+
+30
+
+);
+
+
+
+
+
+textAlign(CENTER);
+
+
+
+fill(20);
+
+
+textSize(32);
+
+
+
+text(
+
+"Great Work!",
+
+width/2,
+
+height/2-90
+
+);
+
+
+
+
+
+fill(120);
+
+
+textSize(15);
+
+
+text(
+
+"Your productivity has been rewarded",
+
+width/2,
+
+height/2-50
+
+);
+
+
+
+
+
+
+fill("#63C786");
+
+
+textSize(55);
+
+
+
+text(
+
+"+ €"+rewardAmount,
+
+width/2,
+
+height/2+30
+
+);
+
+
+
+
+
+
+fill(120);
+
+textSize(14);
+
+
+text(
+
+"Continue working to unlock more rewards",
+
+width/2,
+
+height/2+80
+
+);
+
+
+
+
+
+
+fill(20);
+
+
+rect(
+
+width/2-80,
+
+height/2+115,
+
+160,
+
+45,
+
+20
+
+);
+
+
+
+
+fill(255);
+
+
+textSize(14);
+
+
+
+text(
+
+"CONTINUE",
+
+width/2,
+
+height/2+143
+
+);
+
+
 
 }
 
@@ -455,6 +854,15 @@ mouseY
 
 
 
+
+
+
+
+
+
+// =====================
+// CREATE WINDOWS
+// =====================
 
 
 
@@ -464,13 +872,14 @@ function createPopup(){
 let data=random(messages);
 
 
+
 popups.push(
 
 new Popup(
 
-random(300,width-300),
+random(310,width-320),
 
-random(80,height-200),
+random(70,height-190),
 
 data
 
@@ -490,6 +899,86 @@ data
 
 
 
+
+
+// =====================
+// CLICK
+// =====================
+
+
+function mousePressed(){
+
+
+// reward continue button
+
+
+if(rewardScreen){
+
+
+
+rewardScreen=false;
+
+
+paused=false;
+
+
+
+motivation+=15;
+
+
+stress+=5;
+
+
+
+createPopup();
+createPopup();
+createPopup();
+
+
+
+return;
+
+
+}
+
+
+
+
+
+
+for(let i=popups.length-1;i>=0;i--){
+
+
+popups[i].checkClose(
+
+mouseX,
+
+mouseY
+
+);
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+// =====================
+// POPUP CLASS
+// =====================
+
+
+
 class Popup{
 
 
@@ -501,9 +990,9 @@ this.x=x;
 this.y=y;
 
 
-this.w=260;
+this.w=270;
 
-this.h=145;
+this.h=150;
 
 
 this.data=data;
@@ -524,70 +1013,116 @@ display(){
 
 
 let fy=
-sin(
-frameCount*0.02+
-this.float
-)*3;
+
+sin(frameCount*0.02+this.float)*3;
+
+
+
+noStroke();
 
 
 
 // shadow
 
 
-noStroke();
+fill(0,20);
 
-
-fill(0,25);
 
 
 rect(
+
 this.x+6,
+
 this.y+6+fy,
+
 this.w,
+
 this.h,
+
 18
+
 );
+
+
 
 
 
 // card
 
+
 fill(255);
 
 
+
 rect(
+
 this.x,
+
 this.y+fy,
+
 this.w,
+
 this.h,
+
 18
+
 );
 
 
 
 
-// type
+
+// color
 
 
-fill(120);
+fill(this.data.color);
+
+
+
+rect(
+
+this.x,
+
+this.y+fy,
+
+8,
+
+this.h,
+
+18
+
+);
+
+
+
+
+
+
+fill(this.data.color);
+
 
 
 textSize(11);
 
 
+
 text(
+
 this.data.type,
-this.x+22,
-this.y+30+fy
+
+this.x+25,
+
+this.y+32+fy
+
 );
 
 
 
 
-// close
 
 
-fill("#FFB020");
+fill("#FF5F57");
+
 
 
 circle(
@@ -596,14 +1131,14 @@ this.x+this.w-25,
 
 this.y+25+fy,
 
-12
+13
 
 );
 
 
 
 
-// title
+
 
 
 fill(20);
@@ -612,21 +1147,20 @@ fill(20);
 textSize(18);
 
 
+
 text(
 
 this.data.title,
 
-this.x+22,
+this.x+25,
 
-this.y+65+fy
+this.y+70+fy
 
 );
 
 
 
 
-
-// content
 
 
 fill(100);
@@ -635,34 +1169,16 @@ fill(100);
 textSize(13);
 
 
+
 text(
 
 this.data.text,
 
-this.x+22,
+this.x+25,
 
-this.y+95+fy,
+this.y+100+fy,
 
 210
-
-);
-
-
-
-
-
-
-fill(160);
-
-textSize(10);
-
-text(
-
-"SYSTEM ACTIVE",
-
-this.x+22,
-
-this.y+125+fy
 
 );
 
@@ -678,10 +1194,12 @@ this.y+125+fy
 
 
 
-closeCheck(mx,my){
+
+checkClose(mx,my){
 
 
-let d=dist(
+
+let d = dist(
 
 mx,
 
@@ -699,8 +1217,8 @@ if(d<12){
 
 
 
-let index=
-popups.indexOf(this);
+let index=popups.indexOf(this);
+
 
 
 if(index>-1){
@@ -712,51 +1230,108 @@ popups.splice(index,1);
 
 
 
-// user feels progress
-
-balance+=5;
+completedTasks++;
 
 
-stress-=2;
+stress-=3;
 
 
+balance+=3;
 
-stress=max(
-0,
-stress
-);
+
+motivation+=5;
 
 
 
 
-// system sometimes reacts
+stress=max(stress,0);
 
-if(random()<0.25){
+
+balance=min(balance,100);
+
+
+motivation=min(motivation,100);
+
+
+
+
+
+
+// salary every 5 tasks
+
+
+if(
+
+completedTasks % 5 === 0
+
+){
+
+
+
+rewardAmount=
+
+floor(random(25,90));
+
+
+
+money += rewardAmount;
+
+
+
+rewardScreen=true;
+
+
+
+paused=true;
+
+
+
+}
+
+
+
+
+
+// system reacts to motivation
+
+
+if(
+
+motivation>85 &&
+
+random()<0.3
+
+){
+
 
 
 createPopup();
 
+
 createPopup();
 
 
-stress+=4;
+
+stress+=6;
 
 
-balance-=12;
+balance-=10;
+
+
+
+}
+
+
 
 
 }
 
 
-
 }
 
 
 }
 
-
-
-}
 
 
 
@@ -766,9 +1341,14 @@ balance-=12;
 
 function windowResized(){
 
+
 resizeCanvas(
+
 windowWidth,
+
 windowHeight
+
 );
+
 
 }
