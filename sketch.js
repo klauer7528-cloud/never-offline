@@ -1270,7 +1270,7 @@ completedTasks % 5 === 0
 
 rewardAmount=
 
-floor(random(25,90));
+floor(random(10,50));
 
 
 
