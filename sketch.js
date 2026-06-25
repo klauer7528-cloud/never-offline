@@ -1,10 +1,12 @@
 let popups = [];
 
+let clockSound;
+let soundStarted = false;
+
 
 // =====================
 // SYSTEM DATA
 // =====================
-
 
 let stress = 20;
 let motivation = 60;
@@ -14,8 +16,6 @@ let completedTasks = 0;
 
 let money = 0;
 let rewardAmount = 0;
-
-let onlineTime = 0;
 
 let rewardScreen = false;
 
@@ -29,6 +29,12 @@ let spawnDelay = 6000;
 let lastSpawn = 0;
 
 let paused = false;
+
+
+// escape reaction cooldown
+
+let lastEscapeReaction = 0;
+
 
 
 
@@ -53,21 +59,21 @@ text:"The project deadline is approaching"
 type:"WORK",
 color:"#5B8DEF",
 title:"New Assignment",
-text:"A new task has been added to your workflow"
+text:"A new task has been added"
 },
 
 {
 type:"WORK",
 color:"#5B8DEF",
 title:"Meeting Update",
-text:"Your next meeting starts in 15 minutes"
+text:"Your next meeting starts soon"
 },
 
 {
 type:"WORK",
 color:"#5B8DEF",
 title:"Client Message",
-text:"A client is waiting for your response"
+text:"A client is waiting"
 },
 
 
@@ -78,21 +84,21 @@ text:"A client is waiting for your response"
 type:"AI",
 color:"#9B7EDE",
 title:"AI Assistant",
-text:"We optimized your schedule automatically"
+text:"Your schedule was optimized"
 },
 
 {
 type:"AI",
 color:"#9B7EDE",
 title:"Productivity Analysis",
-text:"Your efficiency increased by 23%"
+text:"Efficiency increased +23%"
 },
 
 {
 type:"AI",
 color:"#9B7EDE",
 title:"Smart Suggestion",
-text:"Your workflow can still be improved"
+text:"Your workflow can improve"
 },
 
 
@@ -103,16 +109,15 @@ text:"Your workflow can still be improved"
 type:"MONEY",
 color:"#63C786",
 title:"Bonus Update",
-text:"Your effort generated extra value"
+text:"Your effort created value"
 },
 
 {
 type:"MONEY",
 color:"#63C786",
 title:"Performance Bonus",
-text:"Keep working to unlock rewards"
+text:"Keep going to unlock rewards"
 },
-
 
 
 
@@ -122,7 +127,7 @@ text:"Keep working to unlock rewards"
 type:"LIFE",
 color:"#FF8FAB",
 title:"Family Message",
-text:"Someone at home wants to talk ❤️"
+text:"Someone wants to talk ❤️"
 },
 
 {
@@ -136,7 +141,7 @@ text:"Your friends invited you tonight"
 type:"LIFE",
 color:"#FF8FAB",
 title:"Health Reminder",
-text:"Take a short break"
+text:"Remember to take a break"
 },
 
 
@@ -148,7 +153,7 @@ text:"Take a short break"
 type:"SYSTEM",
 color:"#888888",
 title:"System Notice",
-text:"Your online presence continues"
+text:"Your online time continues"
 },
 
 {
@@ -158,7 +163,24 @@ title:"New Opportunity",
 text:"More tasks are available"
 }
 
+
 ];
+
+
+
+
+
+// =====================
+// SOUND
+// =====================
+
+
+function preload(){
+
+clockSound =
+loadSound("assets/clock.mp3");
+
+}
 
 
 
@@ -170,19 +192,21 @@ text:"More tasks are available"
 
 function setup(){
 
+
 createCanvas(
 windowWidth,
 windowHeight
 );
 
 
-// start calm
+// initial calm state
 
 for(let i=0;i<3;i++){
 
 createPopup();
 
 }
+
 
 }
 
@@ -199,10 +223,48 @@ createPopup();
 
 function draw(){
 
+
 background("#F7F6F2");
 
 
-onlineTime += 0.01;
+
+// clock pressure
+
+if(soundStarted && !rewardScreen){
+
+
+let volume = map(
+
+stress,
+
+0,
+
+100,
+
+0.08,
+
+0.45
+
+);
+
+
+volume = constrain(
+
+volume,
+
+0.08,
+
+0.45
+
+);
+
+
+clockSound.setVolume(volume);
+
+
+}
+
+
 
 
 if(!rewardScreen){
@@ -212,16 +274,20 @@ systemControl();
 }
 
 
+
 drawDashboard();
 
 
-// windows no shaking
+
+
+// windows
 
 for(let p of popups){
 
 p.display();
 
 }
+
 
 
 
@@ -232,7 +298,10 @@ drawRewardScreen();
 }
 
 
+
 }
+
+
 
 
 
@@ -248,40 +317,50 @@ drawRewardScreen();
 function systemControl(){
 
 
+
 // stop overload
 
-if(popups.length >= maxPopups){
+if(popups.length>=maxPopups){
 
-paused = true;
+paused=true;
 
 }
 
 
-// almost finished
+
+
 
 // user almost escaped
-// system reacts immediately
 
-if(popups.length <= dangerZone){
+if(
+
+popups.length<=dangerZone &&
+
+millis()-lastEscapeReaction>5000
+
+){
 
 
-paused = false;
+paused=false;
 
 
+// new wave
 
-// generate a new wave of work
+for(let i=0;i<5;i++){
 
 createPopup();
-createPopup();
-createPopup();
-createPopup();
+
+}
 
 
 
-stress += 10;
+stress +=10;
+
+motivation +=5;
 
 
-motivation += 5;
+
+lastEscapeReaction=millis();
 
 
 }
@@ -289,22 +368,26 @@ motivation += 5;
 
 
 
-// speed
+
+
 
 spawnDelay = map(
 
 motivation,
 
 0,
+
 100,
 
 9000,
+
 3500
 
 );
 
 
-spawnDelay = constrain(
+
+spawnDelay=constrain(
 
 spawnDelay,
 
@@ -316,21 +399,25 @@ spawnDelay,
 
 
 
-// generate
+
 
 if(
 
 !paused &&
 
-millis()-lastSpawn > spawnDelay
+millis()-lastSpawn>spawnDelay
 
 ){
 
+
 createPopup();
 
-lastSpawn = millis();
+
+lastSpawn=millis();
+
 
 }
+
 
 
 }
@@ -383,6 +470,7 @@ text(
 
 
 
+
 // DATA
 
 drawStat(
@@ -414,6 +502,8 @@ stress,
 
 
 
+
+
 // balance
 
 
@@ -421,11 +511,13 @@ fill(50);
 
 textSize(14);
 
+
 text(
 "Work-Life Balance",
 45,
 500
 );
+
 
 
 fill(230);
@@ -439,6 +531,7 @@ rect(
 );
 
 
+
 fill(80);
 
 rect(
@@ -448,6 +541,7 @@ map(balance,0,100,0,150),
 10,
 10
 );
+
 
 
 fill(120);
@@ -463,12 +557,16 @@ balance+"%",
 
 
 
+
+
+
 function drawStat(name,value,y){
 
 
 fill(130);
 
 textSize(12);
+
 
 text(
 name,
@@ -477,9 +575,11 @@ y
 );
 
 
+
 fill(30);
 
 textSize(25);
+
 
 text(
 value,
@@ -489,6 +589,8 @@ y+35
 
 
 }
+
+
 
 
 
@@ -526,6 +628,7 @@ height/2-170,
 );
 
 
+
 textAlign(CENTER);
 
 
@@ -533,6 +636,7 @@ textAlign(CENTER);
 fill(20);
 
 textSize(32);
+
 
 text(
 "Great Work!",
@@ -545,6 +649,7 @@ height/2-90
 fill(120);
 
 textSize(15);
+
 
 text(
 "Your productivity has been rewarded",
@@ -559,6 +664,7 @@ fill("#63C786");
 
 textSize(55);
 
+
 text(
 "+ €"+rewardAmount,
 width/2,
@@ -572,6 +678,7 @@ fill(120);
 
 textSize(14);
 
+
 text(
 "Continue working to unlock more rewards",
 width/2,
@@ -581,7 +688,9 @@ height/2+80
 
 
 
+
 // button
+
 
 fill(20);
 
@@ -594,9 +703,11 @@ height/2+115,
 );
 
 
+
 fill(255);
 
 textSize(14);
+
 
 text(
 "CONTINUE",
@@ -606,6 +717,7 @@ height/2+143
 
 
 }
+
 
 
 
@@ -650,6 +762,8 @@ data
 
 
 
+
+
 // =====================
 // CLICK
 // =====================
@@ -659,9 +773,33 @@ function mousePressed(){
 
 
 
-// continue after reward
+// start clock sound
+
+if(!soundStarted){
+
+
+clockSound.loop();
+
+
+clockSound.setVolume(0.2);
+
+
+soundStarted=true;
+
+
+}
+
+
+
+
+
+
+
+// reward continue
+
 
 if(rewardScreen){
+
 
 
 rewardScreen=false;
@@ -671,7 +809,19 @@ paused=false;
 
 
 
-// reward creates motivation
+// sound returns
+
+
+if(soundStarted){
+
+clockSound.setVolume(0.25);
+
+}
+
+
+
+
+// motivation after reward
 
 motivation += 8;
 
@@ -680,7 +830,7 @@ stress += 3;
 
 
 
-// only one new task
+// new opportunity
 
 createPopup();
 
@@ -696,7 +846,10 @@ return;
 
 
 
+
+
 for(let i=popups.length-1;i>=0;i--){
+
 
 
 popups[i].checkClose(
@@ -711,7 +864,10 @@ mouseY
 }
 
 
+
 }
+
+
 
 
 
@@ -729,6 +885,7 @@ mouseY
 
 
 class Popup{
+
 
 
 constructor(x,y,data){
@@ -753,6 +910,9 @@ this.data=data;
 
 
 
+
+
+
 display(){
 
 
@@ -761,10 +921,12 @@ noStroke();
 
 
 
+
 // shadow
 
 
 fill(0,20);
+
 
 
 rect(
@@ -784,10 +946,13 @@ this.h,
 
 
 
+
+
 // card
 
 
 fill(255);
+
 
 
 rect(
@@ -807,10 +972,14 @@ this.h,
 
 
 
-// color bar
+
+
+
+// color side
 
 
 fill(this.data.color);
+
 
 
 rect(
@@ -830,14 +999,20 @@ this.h,
 
 
 
+
+
+
 // type
 
 
 fill(this.data.color);
 
-textSize(11);
 
 textAlign(LEFT);
+
+
+textSize(11);
+
 
 
 text(
@@ -853,10 +1028,14 @@ this.y+32
 
 
 
+
+
+
 // close button
 
 
 fill("#FF5F57");
+
 
 
 circle(
@@ -871,13 +1050,18 @@ this.y+25,
 
 
 
-// X
+
+// x symbol
+
 
 fill(255);
 
-textSize(10);
 
 textAlign(CENTER);
+
+
+textSize(10);
+
 
 
 text(
@@ -894,14 +1078,19 @@ this.y+29
 
 
 
+
+
 // title
+
+
+fill(20);
 
 
 textAlign(LEFT);
 
-fill(20);
 
 textSize(18);
+
 
 
 text(
@@ -917,12 +1106,17 @@ this.y+70
 
 
 
-// content
+
+
+
+// text
 
 
 fill(100);
 
+
 textSize(13);
+
 
 
 text(
@@ -938,6 +1132,7 @@ this.y+100,
 );
 
 
+
 }
 
 
@@ -947,7 +1142,10 @@ this.y+100,
 
 
 
+
+
 checkClose(mx,my){
+
 
 
 let d=dist(
@@ -964,6 +1162,8 @@ this.y+25
 
 
 
+
+
 if(d<12){
 
 
@@ -974,52 +1174,83 @@ let index=popups.indexOf(this);
 
 if(index>-1){
 
+
 popups.splice(index,1);
+
 
 }
 
 
 
 
-// task completed
+
+
+// complete task
 
 completedTasks++;
 
 
-stress -= 3;
 
-balance += 3;
+stress-=3;
 
-motivation += 5;
+
+balance+=3;
+
+
+motivation+=5;
+
+
 
 
 
 stress=max(stress,0);
 
+
 balance=min(balance,100);
+
 
 motivation=min(motivation,100);
 
 
 
 
-// salary every 5 tasks
+
+
+
+// salary reward
 
 
 if(completedTasks % 5 === 0){
 
 
-rewardAmount =
+
+rewardAmount=
+
 floor(random(10,50));
+
 
 
 money += rewardAmount;
 
 
+
 rewardScreen=true;
 
 
+
 paused=true;
+
+
+
+
+// clock slows during reward
+
+
+if(soundStarted){
+
+clockSound.setVolume(0.05);
+
+}
 
 
 }
@@ -1027,7 +1258,12 @@ paused=true;
 
 
 
-// motivation creates new work
+
+
+
+
+// high motivation creates work
+
 
 if(
 
@@ -1038,18 +1274,15 @@ random()<0.15
 ){
 
 
+
 createPopup();
 
 
-stress +=4;
+
+stress+=4;
 
 
-balance -=5;
-
-
-}
-
-
+balance-=5;
 
 
 }
@@ -1064,8 +1297,19 @@ balance -=5;
 
 
 
+}
 
 
+
+
+
+
+
+
+
+// =====================
+// RESIZE
+// =====================
 
 
 
